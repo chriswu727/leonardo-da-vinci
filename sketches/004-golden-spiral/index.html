@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Spirale Aurea -- Leonardo da Vinci, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0b08;
+    font-family: 'Georgia', serif;
+    overflow: hidden;
+    color: #c4b89a;
+  }
+  canvas { display: block; }
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .title h1 {
+    font-size: 22px;
+    font-weight: normal;
+    font-style: italic;
+    color: #c4b89a;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+  .title p {
+    font-size: 12px;
+    color: #6b5d4a;
+    margin-top: 4px;
+  }
+  .info {
+    position: fixed;
+    top: 80px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #6b5d4a;
+    font-style: italic;
+    line-height: 2;
+    max-width: 260px;
+  }
+  .info .num {
+    color: #c4b89a;
+    font-style: normal;
+    font-size: 13px;
+  }
+  .note {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #4a4035;
+    font-style: italic;
+    line-height: 1.8;
+  }
+  .ratio {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    text-align: right;
+  }
+  .ratio .number {
+    font-size: 42px;
+    color: #8a7d56;
+    opacity: 0.4;
+    letter-spacing: -1px;
+  }
+  .ratio .label {
+    font-size: 11px;
+    color: #6b5d4a;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <h1>La Spirale Aurea</h1>
+  <p>The geometry that nature cannot stop drawing -- Leonardo da Vinci, MMXXVI</p>
+</div>
+
+<div class="info">
+  <span class="num">1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89...</span><br><br>
+  I illustrated Luca Pacioli's <em>De Divina Proportione</em> in 1509.<br>
+  He called it divine. I called it inevitable.<br><br>
+  The sunflower did not read Pacioli.<br>
+  The nautilus did not study Euclid.<br>
+  The galaxy did not learn mathematics.<br><br>
+  And yet they all draw the same spiral.
+</div>
+
+<div class="ratio">
+  <div class="number">φ = 1.618...</div>
+  <div class="label">la proporzione divina</div>
+</div>
+
+<div class="note">
+  Move the mouse to shift the center of growth. Scroll to zoom. Press S for sunflower seeds, G for galaxy arms, N for nautilus.<br>
+  Each uses the golden angle: 137.507764°. The angle that never repeats, and therefore fills every space perfectly.
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+// ============================================================
+//  La Spirale Aurea -- The Golden Spiral
+//
+//  In 1509 I drew the polyhedra for Pacioli's book on
+//  divine proportion. He was obsessed with phi.
+//  I was obsessed with why phi appears everywhere.
+//
+//  Now I know: it is the angle that packs things most
+//  efficiently. 137.5 degrees. The golden angle.
+//  No two seeds, no two stars, no two chambers
+//  ever land on top of each other.
+//
+//  Nature's favorite number is irrational.
+//  This is either a deep truth or a cosmic joke.
+//  Perhaps both.
+// ============================================================
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+const PHI = (1 + Math.sqrt(5)) / 2;
+const GOLDEN_ANGLE = Math.PI * 2 / (PHI * PHI); // ~137.5 degrees in radians
+
+let centerX, centerY;
+let mouseX, mouseY;
+let zoom = 1;
+let time = 0;
+let mode = 'sunflower'; // sunflower, galaxy, nautilus
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  centerX = W / 2;
+  centerY = H / 2;
+  mouseX = centerX;
+  mouseY = centerY;
+}
+
+function drawSunflower() {
+  const numSeeds = 800;
+  const maxR = Math.min(W, H) * 0.38 * zoom;
+
+  for (let i = 0; i < numSeeds; i++) {
+    const angle = i * GOLDEN_ANGLE;
+    const r = Math.sqrt(i / numSeeds) * maxR;
+
+    const breathe = 1 + 0.015 * Math.sin(time * 2 + i * 0.02);
+    const x = centerX + Math.cos(angle) * r * breathe;
+    const y = centerY + Math.sin(angle) * r * breathe;
+
+    const sizeBase = 1.5 + (r / maxR) * 4;
+    const size = sizeBase * (0.8 + 0.2 * Math.sin(time + i * 0.1));
+
+    const depthRatio = i / numSeeds;
+    const hue = 35 + depthRatio * 15; // warm golden
+    const sat = 40 + depthRatio * 30;
+    const light = 25 + depthRatio * 25;
+    const alpha = 0.3 + depthRatio * 0.5;
+
+    // Glow
+    ctx.beginPath();
+    ctx.arc(x, y, size * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${hue}, ${sat}%, ${light}%, ${alpha * 0.08})`;
+    ctx.fill();
+
+    // Seed
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
+    ctx.fill();
+  }
+
+  // Draw golden spiral overlay
+  drawSpiral(centerX, centerY, maxR * 0.9, 'rgba(196, 184, 154, 0.12)');
+}
+
+function drawGalaxy() {
+  const numStars = 2000;
+  const maxR = Math.min(W, H) * 0.42 * zoom;
+
+  for (let i = 0; i < numStars; i++) {
+    const armAngle = i * GOLDEN_ANGLE;
+    const r = Math.sqrt(i / numStars) * maxR;
+    const twist = r * 0.008; // spiral twist
+
+    const scatter = (Math.random() - 0.5) * (r * 0.15 + 5);
+    const scatterY = (Math.random() - 0.5) * (r * 0.15 + 5);
+
+    const x = centerX + Math.cos(armAngle + twist + time * 0.1) * r + scatter;
+    const y = centerY + Math.sin(armAngle + twist + time * 0.1) * r + scatterY;
+
+    const size = 0.5 + Math.random() * 2 * (1 - r / maxR);
+    const brightness = 0.3 + Math.random() * 0.7;
+
+    // Blue-white for outer, warm for inner
+    const temp = r / maxR;
+    const cr = Math.floor(180 + temp * 75);
+    const cg = Math.floor(180 + temp * 55);
+    const cb = Math.floor(200 + temp * 55);
+
+    // Star glow
+    if (Math.random() < 0.1) {
+      ctx.beginPath();
+      ctx.arc(x, y, size * 5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.03)`;
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${brightness * 0.6})`;
+    ctx.fill();
+  }
+
+  // Core glow
+  const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxR * 0.15);
+  gradient.addColorStop(0, 'rgba(255, 220, 150, 0.15)');
+  gradient.addColorStop(1, 'rgba(255, 220, 150, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawNautilus() {
+  const turns = 4;
+  const maxR = Math.min(W, H) * 0.35 * zoom;
+  const points = 500;
+
+  // Draw chambers
+  const numChambers = 28;
+  for (let i = 0; i < numChambers; i++) {
+    const t = i / numChambers * turns * Math.PI * 2;
+    const r = maxR * 0.03 * Math.pow(PHI, t / (Math.PI * 2));
+    if (r > maxR) continue;
+
+    const breathe = 1 + 0.01 * Math.sin(time * 1.5 + i * 0.3);
+    const x = centerX + Math.cos(t + time * 0.2) * r * breathe;
+    const y = centerY + Math.sin(t + time * 0.2) * r * breathe;
+
+    const chamberSize = r * 0.15 + 2;
+    const alpha = 0.15 + (i / numChambers) * 0.4;
+
+    // Chamber glow
+    ctx.beginPath();
+    ctx.arc(x, y, chamberSize * 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(180, 160, 130, ${alpha * 0.1})`;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x, y, chamberSize, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(180, 160, 130, ${alpha * 0.4})`;
+    ctx.fill();
+  }
+
+  // Draw the spiral shell outline
+  ctx.beginPath();
+  for (let i = 0; i <= points; i++) {
+    const t = i / points * turns * Math.PI * 2;
+    const r = maxR * 0.03 * Math.pow(PHI, t / (Math.PI * 2));
+    if (r > maxR) break;
+
+    const x = centerX + Math.cos(t + time * 0.2) * r;
+    const y = centerY + Math.sin(t + time * 0.2) * r;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = 'rgba(196, 184, 154, 0.35)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Inner spiral
+  ctx.beginPath();
+  for (let i = 0; i <= points; i++) {
+    const t = i / points * turns * Math.PI * 2;
+    const r = maxR * 0.03 * Math.pow(PHI, t / (Math.PI * 2)) * 0.75;
+    if (r > maxR * 0.75) break;
+
+    const x = centerX + Math.cos(t + time * 0.2) * r;
+    const y = centerY + Math.sin(t + time * 0.2) * r;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = 'rgba(196, 184, 154, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function drawSpiral(cx, cy, maxR, color) {
+  ctx.beginPath();
+  const points = 300;
+  const turns = 3;
+  for (let i = 0; i <= points; i++) {
+    const t = i / points * turns * Math.PI * 2;
+    const r = maxR * 0.02 * Math.pow(PHI, t / (Math.PI * 2));
+    if (r > maxR) break;
+    const x = cx + Math.cos(t) * r;
+    const y = cy + Math.sin(t) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function draw() {
+  // Fade
+  ctx.fillStyle = 'rgba(13, 11, 8, 0.12)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle influence of mouse on center
+  centerX += (mouseX - centerX) * 0.02;
+  centerY += (mouseY - centerY) * 0.02;
+
+  if (mode === 'sunflower') drawSunflower();
+  else if (mode === 'galaxy') drawGalaxy();
+  else if (mode === 'nautilus') drawNautilus();
+
+  time += 0.005;
+}
+
+function animate() {
+  draw();
+  requestAnimationFrame(animate);
+}
+
+canvas.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  zoom = Math.max(0.3, Math.min(3, zoom - e.deltaY * 0.001));
+}, { passive: false });
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 's' || e.key === 'S') mode = 'sunflower';
+  if (e.key === 'g' || e.key === 'G') mode = 'galaxy';
+  if (e.key === 'n' || e.key === 'N') mode = 'nautilus';
+});
+
+window.addEventListener('resize', resize);
+resize();
+animate();
+</script>
+</body>
+</html>
