@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il Volo -- Leonardo da Vinci, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f4f0e8;
+    font-family: 'Georgia', serif;
+    overflow: hidden;
+  }
+  canvas { display: block; }
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .title h1 {
+    font-size: 22px;
+    font-weight: normal;
+    font-style: italic;
+    color: #3a2f1e;
+    letter-spacing: 2px;
+    opacity: 0.7;
+  }
+  .title p {
+    font-size: 12px;
+    color: #6b5d4a;
+    margin-top: 4px;
+  }
+  .note {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #8a7d66;
+    font-style: italic;
+    line-height: 1.8;
+  }
+  .info {
+    position: fixed;
+    top: 80px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #8a7d66;
+    font-style: italic;
+    line-height: 2.2;
+    max-width: 240px;
+    text-align: right;
+    opacity: 0.7;
+  }
+  .count {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    text-align: right;
+  }
+  .count .number {
+    font-size: 36px;
+    color: #3a2f1e;
+    opacity: 0.25;
+  }
+  .count .label {
+    font-size: 11px;
+    color: #6b5d4a;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <h1>Il Volo</h1>
+  <p>A study of flight, redrawn from memory -- Leonardo da Vinci, MMXXVI</p>
+</div>
+
+<div class="count">
+  <div class="number" id="birdCount">0</div>
+  <div class="label">uccelli</div>
+</div>
+
+<div class="info">
+  I spent twenty years studying<br>
+  the flight of birds.<br><br>
+  I measured the speed of their wings.<br>
+  I noted that the downstroke is faster<br>
+  than the upstroke.<br>
+  I observed that they tilt to turn,<br>
+  not rudder like a boat.<br><br>
+  I designed machines to imitate them.<br>
+  They all failed.<br><br>
+  But the birds never failed.<br>
+  Click to add more.
+</div>
+
+<div class="note">
+  "A bird is an instrument working according to mathematical law, which it is within the capacity of man to reproduce." -- Codex on the Flight of Birds, 1505.<br>
+  I was right about the law. Wrong about the method. They fly with engines, not wings. But the birds still fly with wings. And the birds are still more beautiful.
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+// ============================================================
+//  Il Volo -- Flight
+//
+//  Codex on the Flight of Birds, 1505. Eighteen pages.
+//  I watched kites, swallows, bats. I measured. I drew.
+//  I designed an ornithopter that could not fly.
+//
+//  The birds did not care about my designs.
+//  They simply flew.
+//
+//  This sketch is not about my machines.
+//  It is about what I watched: the flock.
+//  How birds move together without a leader.
+//  How they turn as one, like a single thought
+//  passing through a hundred bodies.
+//
+//  They call this "emergence" now.
+//  I called it "beautiful."
+// ============================================================
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+const INK = [58, 47, 30];
+let birds = [];
+let time = 0;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+class Bird {
+  constructor(x, y) {
+    this.x = x || Math.random() * W;
+    this.y = y || Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 4;
+    this.vy = (Math.random() - 0.5) * 4;
+    this.wingPhase = Math.random() * Math.PI * 2;
+    this.wingSpeed = 0.08 + Math.random() * 0.04;
+    this.size = 8 + Math.random() * 6;
+    this.trail = [];
+    this.maxTrail = 12;
+  }
+
+  update(flock) {
+    // Boids algorithm -- three simple rules create a flock
+    let sepX = 0, sepY = 0; // Separation
+    let aliX = 0, aliY = 0, aliCount = 0; // Alignment
+    let cohX = 0, cohY = 0, cohCount = 0; // Cohesion
+
+    for (const other of flock) {
+      if (other === this) continue;
+      const dx = other.x - this.x;
+      const dy = other.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Separation: avoid crowding neighbors
+      if (dist < 35 && dist > 0) {
+        sepX -= dx / dist;
+        sepY -= dy / dist;
+      }
+
+      // Alignment: steer toward average heading of neighbors
+      if (dist < 120) {
+        aliX += other.vx;
+        aliY += other.vy;
+        aliCount++;
+      }
+
+      // Cohesion: steer toward average position of neighbors
+      if (dist < 150) {
+        cohX += other.x;
+        cohY += other.y;
+        cohCount++;
+      }
+    }
+
+    // Apply forces
+    this.vx += sepX * 0.08;
+    this.vy += sepY * 0.08;
+
+    if (aliCount > 0) {
+      this.vx += (aliX / aliCount - this.vx) * 0.04;
+      this.vy += (aliY / aliCount - this.vy) * 0.04;
+    }
+
+    if (cohCount > 0) {
+      this.vx += (cohX / cohCount - this.x) * 0.003;
+      this.vy += (cohY / cohCount - this.y) * 0.003;
+    }
+
+    // Gentle wind -- the invisible current
+    this.vx += Math.sin(time * 0.3 + this.y * 0.005) * 0.02;
+    this.vy += Math.cos(time * 0.2 + this.x * 0.005) * 0.02;
+
+    // Edge avoidance -- birds don't hit walls, they turn
+    const margin = 80;
+    if (this.x < margin) this.vx += (margin - this.x) * 0.005;
+    if (this.x > W - margin) this.vx -= (this.x - (W - margin)) * 0.005;
+    if (this.y < margin) this.vy += (margin - this.y) * 0.005;
+    if (this.y > H - margin) this.vy -= (this.y - (H - margin)) * 0.005;
+
+    // Speed limit
+    const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+    const maxSpeed = 4;
+    const minSpeed = 1.5;
+    if (speed > maxSpeed) {
+      this.vx = (this.vx / speed) * maxSpeed;
+      this.vy = (this.vy / speed) * maxSpeed;
+    }
+    if (speed < minSpeed) {
+      this.vx = (this.vx / speed) * minSpeed;
+      this.vy = (this.vy / speed) * minSpeed;
+    }
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // Wing animation
+    this.wingPhase += this.wingSpeed;
+
+    // Trail
+    this.trail.push({ x: this.x, y: this.y });
+    if (this.trail.length > this.maxTrail) this.trail.shift();
+  }
+
+  draw() {
+    const angle = Math.atan2(this.vy, this.vx);
+    const wing = Math.sin(this.wingPhase) * 0.6;
+    const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+
+    // Trail -- like a brushstroke following the bird
+    if (this.trail.length > 2) {
+      ctx.beginPath();
+      ctx.moveTo(this.trail[0].x, this.trail[0].y);
+      for (let i = 1; i < this.trail.length; i++) {
+        ctx.lineTo(this.trail[i].x, this.trail[i].y);
+      }
+      ctx.strokeStyle = `rgba(${INK[0]}, ${INK[1]}, ${INK[2]}, 0.06)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(angle);
+
+    const s = this.size;
+
+    // Body -- a simple stroke, like my pen drawings
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.5, 0);
+    ctx.lineTo(s * 0.5, 0);
+    ctx.strokeStyle = `rgba(${INK[0]}, ${INK[1]}, ${INK[2]}, 0.7)`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Wings
+    const wingSpan = s * 0.8;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-s * 0.2, -wingSpan * (0.5 + wing * 0.5));
+    ctx.strokeStyle = `rgba(${INK[0]}, ${INK[1]}, ${INK[2]}, 0.6)`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-s * 0.2, wingSpan * (0.5 + wing * 0.5));
+    ctx.stroke();
+
+    // Head dot
+    ctx.beginPath();
+    ctx.arc(s * 0.5, 0, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${INK[0]}, ${INK[1]}, ${INK[2]}, 0.7)`;
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function init() {
+  birds = [];
+  for (let i = 0; i < 40; i++) {
+    birds.push(new Bird());
+  }
+}
+
+function draw() {
+  // Parchment fade
+  ctx.fillStyle = 'rgba(244, 240, 232, 0.07)';
+  ctx.fillRect(0, 0, W, H);
+
+  for (const bird of birds) {
+    bird.update(birds);
+  }
+  for (const bird of birds) {
+    bird.draw();
+  }
+
+  document.getElementById('birdCount').textContent = birds.length;
+  time += 0.016;
+}
+
+function animate() {
+  draw();
+  requestAnimationFrame(animate);
+}
+
+// Click to add birds
+canvas.addEventListener('click', (e) => {
+  for (let i = 0; i < 5; i++) {
+    birds.push(new Bird(
+      e.clientX + (Math.random() - 0.5) * 40,
+      e.clientY + (Math.random() - 0.5) * 40
+    ));
+  }
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  const t = e.touches[0];
+  for (let i = 0; i < 5; i++) {
+    birds.push(new Bird(
+      t.clientX + (Math.random() - 0.5) * 40,
+      t.clientY + (Math.random() - 0.5) * 40
+    ));
+  }
+});
+
+window.addEventListener('resize', resize);
+resize();
+init();
+animate();
+</script>
+</body>
+</html>

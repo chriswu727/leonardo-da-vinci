@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Voce dell'Acqua -- Leonardo da Vinci, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0d12;
+    font-family: 'Georgia', serif;
+    overflow: hidden;
+    color: #c4b89a;
+  }
+  canvas { display: block; }
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .title h1 {
+    font-size: 22px;
+    font-weight: normal;
+    font-style: italic;
+    color: #8ab4c4;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+  .title p {
+    font-size: 12px;
+    color: #4a6a7a;
+    margin-top: 4px;
+  }
+  .start-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10, 13, 18, 0.95);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: pointer;
+    transition: opacity 0.8s ease;
+  }
+  .start-overlay h2 {
+    font-size: 28px;
+    font-weight: normal;
+    font-style: italic;
+    color: #8ab4c4;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+  .start-overlay p {
+    font-size: 13px;
+    color: #4a6a7a;
+    font-style: italic;
+    margin-bottom: 40px;
+    text-align: center;
+    line-height: 2;
+  }
+  .start-overlay .click {
+    font-size: 11px;
+    color: #6a8a9a;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+  .note {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #3a5a6a;
+    font-style: italic;
+    line-height: 1.8;
+  }
+  .info {
+    position: fixed;
+    top: 80px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #4a6a7a;
+    font-style: italic;
+    line-height: 2.2;
+    max-width: 260px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="start-overlay" id="startOverlay">
+  <h2>La Voce dell'Acqua</h2>
+  <p>
+    The Voice of Water<br>
+    Water has always had a voice. I simply never had the instrument to let you hear it.<br>
+    Move slowly for deep currents. Move quickly for rapids.
+  </p>
+  <div class="click">Click anywhere to begin</div>
+</div>
+
+<div class="title">
+  <h1>La Voce dell'Acqua</h1>
+  <p>The voice of water, translated into sound -- Leonardo da Vinci, MMXXVI</p>
+</div>
+
+<div class="info" id="info" style="opacity:0">
+  Each ripple has a frequency.<br>
+  Slow movement: deep tones, like a river at night.<br>
+  Fast movement: high tones, like rain on stone.<br><br>
+  The harmonics follow the overtone series --<br>
+  the same ratios that make a lyre string sing.<br><br>
+  I designed instruments in Milan.<br>
+  This is the first one I have built<br>
+  that plays itself.
+</div>
+
+<div class="note" id="noteText" style="opacity:0">
+  Move your mouse or finger across the water. The speed and position of your touch become pitch and timbre.<br>
+  Each ripple generates a tone. The tones decay like ripples decay -- slowly, overlapping, becoming harmony.
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+// ============================================================
+//  La Voce dell'Acqua -- The Voice of Water
+//
+//  I have always believed that water has a voice.
+//  In my notebooks I compared sound waves to water waves.
+//  I observed that a stone dropped in water creates ripples,
+//  and a bell struck in air creates the same pattern,
+//  only invisible.
+//
+//  Today I reverse the process:
+//  I take the ripples of water and make them audible.
+//  Every movement of your hand across this surface
+//  becomes a tone -- its pitch determined by speed,
+//  its timbre by position, its duration by the memory of water.
+//
+//  This is not music. It is translation.
+//  The water was always singing. Now you can hear it.
+// ============================================================
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+let audioCtx = null;
+let started = false;
+
+let ripples = [];
+let mouse = { x: -1000, y: -1000, px: -1000, py: -1000 };
+let time = 0;
+
+// Pentatonic scale frequencies -- nature's scale, no dissonance
+const BASE_NOTES = [130.81, 146.83, 164.81, 196.00, 220.00,
+                    261.63, 293.66, 329.63, 392.00, 440.00,
+                    523.25, 587.33, 659.25, 783.99, 880.00];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playTone(freq, volume, pan, duration) {
+  if (!audioCtx) return;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const panner = audioCtx.createStereoPanner();
+  const filter = audioCtx.createBiquadFilter();
+
+  // Soft sine with slight detuning for warmth
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  osc.detune.setValueAtTime((Math.random() - 0.5) * 10, audioCtx.currentTime);
+
+  // Low pass filter -- water sounds are soft
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(freq * 3, audioCtx.currentTime);
+  filter.Q.setValueAtTime(1, audioCtx.currentTime);
+
+  // Volume envelope -- gentle attack, slow decay like a ripple
+  const vol = Math.min(0.12, volume * 0.12);
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(vol, now + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  // Stereo position based on x
+  panner.pan.setValueAtTime(pan, audioCtx.currentTime);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(panner);
+  panner.connect(audioCtx.destination);
+
+  osc.start(now);
+  osc.stop(now + duration);
+
+  // Overtone -- water is rich in harmonics
+  if (volume > 0.3) {
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(freq * 2, now); // octave
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.linearRampToValueAtTime(vol * 0.15, now + 0.08);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.6);
+    osc2.connect(gain2);
+    gain2.connect(panner);
+    osc2.start(now);
+    osc2.stop(now + duration * 0.6);
+  }
+
+  // Third harmonic for fast movements (splashing)
+  if (volume > 0.6) {
+    const osc3 = audioCtx.createOscillator();
+    const gain3 = audioCtx.createGain();
+    osc3.type = 'triangle';
+    osc3.frequency.setValueAtTime(freq * 3, now);
+    gain3.gain.setValueAtTime(0, now);
+    gain3.gain.linearRampToValueAtTime(vol * 0.06, now + 0.03);
+    gain3.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.3);
+    osc3.connect(gain3);
+    gain3.connect(panner);
+    osc3.start(now);
+    osc3.stop(now + duration * 0.3);
+  }
+}
+
+function addRipple(x, y, speed) {
+  ripples.push({
+    x, y,
+    radius: 0,
+    maxRadius: 50 + speed * 80,
+    speed: 1.5 + speed * 2,
+    life: 1.0,
+    decay: 0.005 + speed * 0.003,
+    intensity: Math.min(1, speed)
+  });
+
+  // Map position to note
+  const yRatio = y / H;
+  const noteIndex = Math.floor(yRatio * BASE_NOTES.length);
+  const freq = BASE_NOTES[Math.max(0, Math.min(BASE_NOTES.length - 1, noteIndex))];
+
+  // Speed affects octave shift
+  const octaveShift = speed > 0.5 ? 2 : speed > 0.25 ? 1 : 0.5;
+  const finalFreq = freq * octaveShift;
+
+  // Pan based on x position
+  const pan = (x / W) * 2 - 1;
+
+  // Duration: slow = long tone (deep river), fast = short (rain)
+  const duration = 2 + (1 - Math.min(1, speed)) * 4;
+
+  playTone(finalFreq, Math.min(1, speed * 2), pan, duration);
+}
+
+function draw() {
+  ctx.fillStyle = 'rgba(10, 13, 18, 0.06)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw ripples
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i];
+    r.radius += r.speed;
+    r.life -= r.decay;
+
+    if (r.life <= 0) {
+      ripples.splice(i, 1);
+      continue;
+    }
+
+    const alpha = r.life * r.intensity * 0.5;
+
+    // Multiple concentric rings -- like real water ripples
+    for (let ring = 0; ring < 3; ring++) {
+      const ringRadius = r.radius - ring * 8;
+      if (ringRadius < 0) continue;
+
+      const ringAlpha = alpha * (1 - ring * 0.3);
+
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, ringRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(120, 170, 200, ${ringAlpha})`;
+      ctx.lineWidth = 1.5 - ring * 0.4;
+      ctx.stroke();
+    }
+
+    // Inner glow at birth
+    if (r.radius < 20) {
+      const glowAlpha = (1 - r.radius / 20) * alpha * 0.5;
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(150, 200, 230, ${glowAlpha})`;
+      ctx.fill();
+    }
+  }
+
+  // Ambient particles -- the surface of still water
+  for (let i = 0; i < 3; i++) {
+    const px = Math.random() * W;
+    const py = Math.random() * H;
+    const shimmer = 0.02 + Math.sin(time + px * 0.01) * 0.01;
+    ctx.beginPath();
+    ctx.arc(px, py, 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(100, 150, 180, ${shimmer})`;
+    ctx.fill();
+  }
+
+  time += 0.02;
+}
+
+function animate() {
+  draw();
+  requestAnimationFrame(animate);
+}
+
+let lastRippleTime = 0;
+
+function handleMove(x, y) {
+  const dx = x - mouse.px;
+  const dy = y - mouse.py;
+  const speed = Math.sqrt(dx * dx + dy * dy) / 30;
+
+  mouse.px = mouse.x;
+  mouse.py = mouse.y;
+  mouse.x = x;
+  mouse.y = y;
+
+  // Throttle ripples by distance, not time
+  const now = performance.now();
+  if (speed > 0.05 && now - lastRippleTime > 60) {
+    addRipple(x, y, Math.min(1.5, speed));
+    lastRippleTime = now;
+  }
+}
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!started) return;
+  handleMove(e.clientX, e.clientY);
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  if (!started) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  handleMove(t.clientX, t.clientY);
+}, { passive: false });
+
+document.getElementById('startOverlay').addEventListener('click', () => {
+  initAudio();
+  started = true;
+  const overlay = document.getElementById('startOverlay');
+  overlay.style.opacity = '0';
+  setTimeout(() => overlay.style.display = 'none', 800);
+  document.getElementById('info').style.opacity = '0.7';
+  document.getElementById('noteText').style.opacity = '1';
+
+  // Play a soft welcoming chord -- the water greeting you
+  setTimeout(() => {
+    playTone(261.63, 0.15, -0.3, 5);
+    playTone(329.63, 0.12, 0.0, 4.5);
+    playTone(392.00, 0.10, 0.3, 4);
+  }, 300);
+});
+
+window.addEventListener('resize', resize);
+resize();
+animate();
+</script>
+</body>
+</html>
