@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connessione -- Leonardo da Vinci, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f;
+    font-family: 'Georgia', serif;
+    overflow: hidden;
+    color: #c4b89a;
+  }
+  canvas { display: block; }
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .title h1 {
+    font-size: 22px;
+    font-weight: normal;
+    font-style: italic;
+    color: #c4b89a;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+  .title p {
+    font-size: 12px;
+    color: #6b5d4a;
+    margin-top: 4px;
+  }
+  .label {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    pointer-events: none;
+    text-align: center;
+    transition: opacity 0.8s ease;
+  }
+  .label h2 {
+    font-size: 16px;
+    font-weight: normal;
+    font-style: italic;
+    color: #c4b89a;
+    opacity: 0.6;
+    letter-spacing: 3px;
+  }
+  .label p {
+    font-size: 11px;
+    color: #6b5d4a;
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .note {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #4a4035;
+    font-style: italic;
+    line-height: 1.8;
+  }
+  .controls {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 20;
+    font-size: 11px;
+    color: #6b5d4a;
+    text-align: right;
+  }
+  .controls span {
+    display: block;
+    margin-bottom: 4px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+  .controls span:hover, .controls span.active {
+    opacity: 1;
+    color: #c4b89a;
+  }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <h1>Connessione</h1>
+  <p>Everything connects to everything else -- Leonardo da Vinci, MMXXVI</p>
+</div>
+
+<div class="label" id="label">
+  <h2 id="systemName">Rivers</h2>
+  <p id="systemDesc">Water finds the path of least resistance</p>
+</div>
+
+<div class="controls">
+  <span class="active" onclick="setSystem(0)">I. Rivers</span>
+  <span onclick="setSystem(1)">II. Blood Vessels</span>
+  <span onclick="setSystem(2)">III. Trees</span>
+  <span onclick="setSystem(3)">IV. Lightning</span>
+  <span onclick="setSystem(4)">V. Lungs</span>
+  <span onclick="setSystem(5)">VI. River Deltas</span>
+</div>
+
+<div class="note">
+  "The branching of rivers obeys the same law as the branching of trees, the branching of veins, and the branching of lightning.<br>
+  Nature uses one pattern to solve all problems of distribution." -- Quaderno 003
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+// ============================================================
+//  Connessione -- On Connection
+//
+//  The central thesis of my life: everything connects.
+//  Rivers branch like veins. Veins branch like trees.
+//  Trees branch like lightning. Lightning branches like rivers.
+//
+//  They are all solving the same problem:
+//  how to deliver something (water, blood, nutrients, charge)
+//  from one source to every reachable point,
+//  using the least energy.
+//
+//  This is one drawing. It is all of them.
+// ============================================================
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+const systems = [
+  {
+    name: 'Rivers',
+    desc: 'Water finds the path of least resistance',
+    color: [70, 130, 180],
+    angle: Math.PI / 2,      // flows downward
+    spread: 0.35,
+    decay: 0.72,
+    minBranch: 3,
+    maxDepth: 11,
+    width: 8,
+    curve: 0.15,
+    gravity: 0.02
+  },
+  {
+    name: 'Blood Vessels',
+    desc: 'The body is a river system in miniature',
+    color: [160, 40, 40],
+    angle: -Math.PI / 2,     // flows upward from heart
+    spread: 0.4,
+    decay: 0.68,
+    minBranch: 2,
+    maxDepth: 12,
+    width: 6,
+    curve: 0.25,
+    gravity: 0
+  },
+  {
+    name: 'Trees',
+    desc: 'A tree is a river flowing upward toward the sun',
+    color: [80, 120, 50],
+    angle: -Math.PI / 2,     // grows upward
+    spread: 0.45,
+    decay: 0.70,
+    minBranch: 2,
+    maxDepth: 11,
+    width: 10,
+    curve: 0.1,
+    gravity: -0.01
+  },
+  {
+    name: 'Lightning',
+    desc: 'The sky cracks open along the same fractal as a riverbed',
+    color: [200, 200, 255],
+    angle: Math.PI / 2,      // strikes downward
+    spread: 0.5,
+    decay: 0.65,
+    minBranch: 2,
+    maxDepth: 10,
+    width: 4,
+    curve: 0.4,
+    gravity: 0.03
+  },
+  {
+    name: 'Lungs',
+    desc: 'The bronchi branch twenty-three times to fill every corner with air',
+    color: [180, 120, 130],
+    angle: Math.PI / 2,
+    spread: 0.42,
+    decay: 0.71,
+    minBranch: 2,
+    maxDepth: 12,
+    width: 5,
+    curve: 0.2,
+    gravity: 0.01
+  },
+  {
+    name: 'River Deltas',
+    desc: 'Where the river meets the sea, it remembers how to be a tree',
+    color: [100, 150, 140],
+    angle: Math.PI / 2,
+    spread: 0.55,
+    decay: 0.67,
+    minBranch: 3,
+    maxDepth: 10,
+    width: 7,
+    curve: 0.12,
+    gravity: 0.015
+  }
+];
+
+let currentSystem = 0;
+let branches = [];
+let animProgress = 0;
+let targetSystem = 0;
+let transitioning = false;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function generateBranches(sys) {
+  const result = [];
+  const s = systems[sys];
+
+  function branch(x, y, angle, depth, width) {
+    if (depth > s.maxDepth || width < 0.3) return;
+
+    const len = (30 + Math.random() * 40) * Math.pow(s.decay, depth * 0.3);
+    const curve = (Math.random() - 0.5) * s.curve;
+    const endAngle = angle + curve + s.gravity * depth;
+
+    const ex = x + Math.cos(endAngle) * len;
+    const ey = y + Math.sin(endAngle) * len;
+
+    result.push({
+      x1: x, y1: y,
+      x2: ex, y2: ey,
+      width: width,
+      depth: depth,
+      order: result.length
+    });
+
+    const numBranches = s.minBranch + Math.floor(Math.random() * 2);
+
+    if (depth < 2 || Math.random() < 0.85) {
+      for (let i = 0; i < numBranches; i++) {
+        const newAngle = endAngle + (Math.random() - 0.5) * s.spread * 2;
+        const newWidth = width * (s.decay - Math.random() * 0.1);
+        branch(ex, ey, newAngle, depth + 1, newWidth);
+      }
+    }
+  }
+
+  // Starting point
+  let startX, startY;
+  if (s.angle < 0) {
+    // Growing upward
+    startX = W / 2;
+    startY = H * 0.85;
+  } else {
+    // Flowing/striking downward
+    startX = W / 2;
+    startY = H * 0.12;
+  }
+
+  branch(startX, startY, s.angle, 0, s.width);
+  return result;
+}
+
+function setSystem(idx) {
+  targetSystem = idx;
+  currentSystem = idx;
+  branches = generateBranches(idx);
+  animProgress = 0;
+
+  // Update UI
+  document.getElementById('systemName').textContent = systems[idx].name;
+  document.getElementById('systemDesc').textContent = systems[idx].desc;
+  document.querySelectorAll('.controls span').forEach((el, i) => {
+    el.className = i === idx ? 'active' : '';
+  });
+}
+
+function draw() {
+  ctx.fillStyle = 'rgba(10, 10, 15, 0.08)';
+  ctx.fillRect(0, 0, W, H);
+
+  const s = systems[currentSystem];
+  const totalBranches = branches.length;
+  const visible = Math.floor(animProgress * totalBranches);
+
+  for (let i = 0; i < Math.min(visible, totalBranches); i++) {
+    const b = branches[i];
+    const depthRatio = b.depth / s.maxDepth;
+    const alpha = (1 - depthRatio * 0.7) * 0.8;
+
+    // Glow for shallow branches
+    if (b.depth < 3) {
+      ctx.beginPath();
+      ctx.moveTo(b.x1, b.y1);
+      ctx.lineTo(b.x2, b.y2);
+      ctx.strokeStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${alpha * 0.15})`;
+      ctx.lineWidth = b.width * 3;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    // Main line
+    ctx.beginPath();
+    ctx.moveTo(b.x1, b.y1);
+    ctx.lineTo(b.x2, b.y2);
+    ctx.strokeStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${alpha})`;
+    ctx.lineWidth = b.width;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Tiny bright core for thin branches (capillaries, tributaries)
+    if (b.depth > 5) {
+      ctx.beginPath();
+      ctx.moveTo(b.x1, b.y1);
+      ctx.lineTo(b.x2, b.y2);
+      ctx.strokeStyle = `rgba(${Math.min(255, s.color[0] + 80)}, ${Math.min(255, s.color[1] + 80)}, ${Math.min(255, s.color[2] + 80)}, ${alpha * 0.3})`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+  }
+
+  // Animate growth
+  if (animProgress < 1) {
+    animProgress += 0.008;
+  }
+}
+
+function animate() {
+  draw();
+  requestAnimationFrame(animate);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  const num = parseInt(e.key);
+  if (num >= 1 && num <= 6) {
+    setSystem(num - 1);
+  }
+  if (e.key === ' ') {
+    e.preventDefault();
+    // Regenerate same system with new randomness
+    setSystem(currentSystem);
+  }
+});
+
+window.addEventListener('resize', () => {
+  resize();
+  setSystem(currentSystem);
+});
+
+resize();
+setSystem(0);
+animate();
+</script>
+</body>
+</html>
