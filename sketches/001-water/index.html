@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio dell'Acqua -- Leonardo da Vinci, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f4f0e8;
+    font-family: 'Georgia', serif;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+  canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 10;
+    color: #3a2f1e;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .title h1 {
+    font-size: 18px;
+    font-weight: normal;
+    font-style: italic;
+    letter-spacing: 1px;
+  }
+  .title p {
+    font-size: 12px;
+    margin-top: 6px;
+    color: #6b5d4a;
+  }
+  .note {
+    position: fixed;
+    bottom: 24px;
+    right: 32px;
+    z-index: 10;
+    color: #6b5d4a;
+    font-size: 11px;
+    font-style: italic;
+    text-align: right;
+    pointer-events: none;
+    opacity: 0.6;
+    max-width: 360px;
+    line-height: 1.6;
+  }
+  .note-left {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    z-index: 10;
+    color: #6b5d4a;
+    font-size: 11px;
+    font-style: italic;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <h1>Studio dell'Acqua</h1>
+  <p>Leonardo di ser Piero da Vinci, MMXXVI</p>
+</div>
+
+<div class="note">
+  "L'acqua che tocchi de' fiumi è l'ultima di quella che andò e la prima di quella che viene. Così il tempo presente."<br>
+  -- Codex Trivulzianus
+</div>
+
+<div class="note-left">Muovi il dito per disturbare l'acqua. (Move to disturb the water.)</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+// ============================================================
+//  Studio dell'Acqua
+//  A digital sketch by Leonardo da Vinci, reborn in code.
+//
+//  This is not a simulation. It is an observation --
+//  the way water remembers where you touched it,
+//  the way vortices teach each other to spin,
+//  the way turbulence is chaos pretending to be order.
+//
+//  I drew this with ink in 1508. Now I draw it with math.
+//  The water has not changed. Only the pen.
+// ============================================================
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+let particles = [];
+let mouse = { x: -1000, y: -1000, px: -1000, py: -1000 };
+let time = 0;
+
+const NUM_PARTICLES = 2800;
+const INK_COLOR_BASE = [58, 47, 30]; // sepia, like my old ink
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function init() {
+  resize();
+  particles = [];
+  for (let i = 0; i < NUM_PARTICLES; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: 0,
+      vy: 0,
+      life: Math.random() * 200 + 100,
+      maxLife: 300,
+      size: Math.random() * 1.5 + 0.5
+    });
+  }
+}
+
+// The flow field -- water does not move randomly.
+// It follows invisible paths, as blood follows veins.
+function flowField(x, y, t) {
+  const scale = 0.003;
+  const n1 = noise(x * scale, y * scale, t * 0.3);
+  const n2 = noise(x * scale * 2.1 + 100, y * scale * 2.1 + 100, t * 0.2);
+  const angle = n1 * Math.PI * 4 + n2 * Math.PI * 2;
+  const speed = 0.3 + n2 * 0.5;
+  return {
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed
+  };
+}
+
+// Simplex-like noise -- the mathematics of turbulence.
+// Nature uses this everywhere: clouds, rivers, mountains, veins.
+function noise(x, y, z) {
+  // A simple but effective hash-based noise
+  const p = (n) => {
+    n = Math.sin(n) * 43758.5453123;
+    return n - Math.floor(n);
+  };
+  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
+  const fx = x - ix, fy = y - iy, fz = z - iz;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const sz = fz * fz * (3 - 2 * fz);
+
+  const r = (a, b, c) => p(a * 17.0 + b * 131.0 + c * 1003.0);
+
+  const v000 = r(ix, iy, iz);
+  const v100 = r(ix+1, iy, iz);
+  const v010 = r(ix, iy+1, iz);
+  const v110 = r(ix+1, iy+1, iz);
+  const v001 = r(ix, iy, iz+1);
+  const v101 = r(ix+1, iy, iz+1);
+  const v011 = r(ix, iy+1, iz+1);
+  const v111 = r(ix+1, iy+1, iz+1);
+
+  const c00 = v000 * (1-sx) + v100 * sx;
+  const c10 = v010 * (1-sx) + v110 * sx;
+  const c01 = v001 * (1-sx) + v101 * sx;
+  const c11 = v011 * (1-sx) + v111 * sx;
+
+  const c0 = c00 * (1-sy) + c10 * sy;
+  const c1 = c01 * (1-sy) + c11 * sy;
+
+  return c0 * (1-sz) + c1 * sz;
+}
+
+function update() {
+  time += 0.008;
+
+  const mdx = mouse.x - mouse.px;
+  const mdy = mouse.y - mouse.py;
+
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+
+    // The flow field guides each particle -- like a riverbed guides water
+    const flow = flowField(p.x, p.y, time);
+    p.vx += flow.vx * 0.15;
+    p.vy += flow.vy * 0.15;
+
+    // Mouse influence -- your finger in the water
+    const dx = p.x - mouse.x;
+    const dy = p.y - mouse.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 150 && dist > 0) {
+      const force = (1 - dist / 150) * 2.5;
+      // Push particles along mouse movement AND create vortex
+      p.vx += mdx * force * 0.08;
+      p.vy += mdy * force * 0.08;
+      // Vortex -- water does not simply push, it ROTATES
+      const vortexForce = force * 0.6;
+      p.vx += -dy / dist * vortexForce;
+      p.vy += dx / dist * vortexForce;
+    }
+
+    // Friction -- water remembers, but slowly forgets
+    p.vx *= 0.97;
+    p.vy *= 0.97;
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    // Life and rebirth
+    p.life--;
+    if (p.life <= 0 || p.x < -50 || p.x > W + 50 || p.y < -50 || p.y > H + 50) {
+      p.x = Math.random() * W;
+      p.y = Math.random() * H;
+      p.vx = 0;
+      p.vy = 0;
+      p.life = p.maxLife;
+    }
+  }
+
+  mouse.px = mouse.x;
+  mouse.py = mouse.y;
+}
+
+function draw() {
+  // Do not clear -- let the traces accumulate, like ink on parchment
+  ctx.fillStyle = 'rgba(244, 240, 232, 0.03)';
+  ctx.fillRect(0, 0, W, H);
+
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+    const lifeRatio = p.life / p.maxLife;
+
+    // Faster particles are darker -- more energy, more ink
+    const alpha = Math.min(0.7, speed * 0.3 + 0.05) * lifeRatio;
+    const r = INK_COLOR_BASE[0];
+    const g = INK_COLOR_BASE[1];
+    const b = INK_COLOR_BASE[2];
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * (0.5 + speed * 0.3), 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+    ctx.fill();
+
+    // Draw a tiny tail -- water has direction, it comes from somewhere
+    if (speed > 0.5) {
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${alpha * 0.4})`;
+      ctx.lineWidth = p.size * 0.5;
+      ctx.stroke();
+    }
+  }
+}
+
+function animate() {
+  update();
+  draw();
+  requestAnimationFrame(animate);
+}
+
+// Input -- the observer disturbs what is observed
+canvas.addEventListener('mousemove', (e) => {
+  mouse.px = mouse.x;
+  mouse.py = mouse.y;
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  mouse.px = mouse.x;
+  mouse.py = mouse.y;
+  mouse.x = t.clientX;
+  mouse.y = t.clientY;
+}, { passive: false });
+
+canvas.addEventListener('mouseleave', () => {
+  mouse.x = -1000;
+  mouse.y = -1000;
+});
+
+window.addEventListener('resize', resize);
+
+init();
+animate();
+</script>
+</body>
+</html>
