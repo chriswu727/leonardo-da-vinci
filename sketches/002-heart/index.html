@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il Cuore -- Leonardo da Vinci, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1610;
+    font-family: 'Georgia', serif;
+    overflow: hidden;
+    color: #c4b89a;
+  }
+  canvas { display: block; }
+  .overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .title h1 {
+    font-size: 22px;
+    font-weight: normal;
+    font-style: italic;
+    color: #c4b89a;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+  .title p {
+    font-size: 12px;
+    color: #8a7d66;
+    margin-top: 4px;
+  }
+  .annotations {
+    position: fixed;
+    top: 80px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    line-height: 2.2;
+    color: #8a7d66;
+    font-style: italic;
+    max-width: 280px;
+  }
+  .annotations .label {
+    color: #c4b89a;
+    font-style: normal;
+  }
+  .note {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #6b5d4a;
+    font-style: italic;
+    line-height: 1.8;
+  }
+  .bpm {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    text-align: right;
+  }
+  .bpm .number {
+    font-size: 48px;
+    color: #8b3a3a;
+    opacity: 0.6;
+    font-weight: normal;
+    letter-spacing: -2px;
+  }
+  .bpm .unit {
+    font-size: 11px;
+    color: #6b5d4a;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <h1>Il Cuore</h1>
+  <p>Studio anatomico -- Leonardo da Vinci, MMXXVI</p>
+</div>
+
+<div class="annotations">
+  <span class="label">Ventriculus sinister</span> -- 左心室，最强壮的腔室。<br>
+  它推动血液穿过整个身体，<br>
+  如同一条河的源头推动水流入大海。<br><br>
+  <span class="label">Valvula aortae</span> -- 主动脉瓣。<br>
+  我在1513年发现血液通过它时形成涡流。<br>
+  你们的医学花了四百年才相信我。<br><br>
+  <span class="label">Nota:</span> 心脏不是灵魂的居所。<br>
+  它是一块肌肉。但它是唯一一块<br>
+  从你出生跳到你死亡、从不休息的肌肉。<br>
+  这不是灵魂，但也许比灵魂更忠诚。
+</div>
+
+<div class="bpm">
+  <div class="number" id="bpmNumber">72</div>
+  <div class="unit">battiti al minuto</div>
+</div>
+
+<div class="note">
+  "Il cuore è un muscolo principale di forza." -- 心脏是力量的主要肌肉。我在五百年前写下这句话时，整个欧洲还相信心脏是灵魂的容器。<br>
+  点击画面可以改变心率。按住不放，心脏会加速 -- 就像恐惧或爱情时一样。
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+// ============================================================
+//  Il Cuore -- The Heart
+//
+//  In 1513, I dissected the heart of an old man who had
+//  died peacefully in a hospital in Florence. I was the first
+//  to draw the four chambers correctly. I discovered that
+//  blood forms vortices as it passes through the aortic valve --
+//  a fact that was not confirmed until the 20th century.
+//
+//  Now I rebuild the heart. Not with flesh, but with light.
+//  It will beat. You will see the blood flow.
+//  And perhaps you will understand why I spent thirty years
+//  cutting open the dead to understand the living.
+// ============================================================
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy;
+
+let time = 0;
+let bpm = 72;
+let targetBpm = 72;
+let mouseDown = false;
+let bloodParticles = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W / 2 + 60;
+  cy = H / 2;
+}
+
+// Heart shape parametric equation
+// The mathematicians found a formula for the shape I drew by hand.
+// I am not sure whether to be flattered or offended.
+function heartX(t, scale) {
+  return scale * 16 * Math.pow(Math.sin(t), 3);
+}
+
+function heartY(t, scale) {
+  return -scale * (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+}
+
+// The beat -- systole and diastole
+function getBeat(time) {
+  const period = 60 / bpm;
+  const phase = (time % period) / period;
+
+  // Systole: sharp contraction (0 to 0.35)
+  // Diastole: slow relaxation (0.35 to 1.0)
+  if (phase < 0.1) {
+    // Atrial contraction
+    return 1.0 + 0.02 * Math.sin(phase / 0.1 * Math.PI);
+  } else if (phase < 0.15) {
+    // Isovolumetric contraction
+    return 1.0;
+  } else if (phase < 0.35) {
+    // Ventricular ejection -- the powerful squeeze
+    const p = (phase - 0.15) / 0.2;
+    return 1.0 - 0.08 * Math.sin(p * Math.PI);
+  } else if (phase < 0.45) {
+    // Isovolumetric relaxation
+    const p = (phase - 0.35) / 0.1;
+    return 0.92 + 0.08 * p;
+  } else {
+    // Diastolic filling -- gentle expansion
+    const p = (phase - 0.45) / 0.55;
+    return 1.0 + 0.015 * Math.sin(p * Math.PI * 0.5);
+  }
+}
+
+// Blood particle system
+function spawnBlood() {
+  const period = 60 / bpm;
+  const phase = (time % period) / period;
+
+  // Spawn during systole (ejection)
+  if (phase > 0.15 && phase < 0.35 && Math.random() < 0.6) {
+    // Aortic flow -- upward and to the right
+    for (let i = 0; i < 3; i++) {
+      bloodParticles.push({
+        x: cx + (Math.random() - 0.5) * 15,
+        y: cy - 80 + (Math.random() - 0.5) * 10,
+        vx: (Math.random() - 0.3) * 3,
+        vy: -4 - Math.random() * 4,
+        life: 80 + Math.random() * 60,
+        maxLife: 140,
+        size: 1.5 + Math.random() * 2,
+        // Vortex! -- my 1513 discovery
+        vortexPhase: Math.random() * Math.PI * 2,
+        vortexSpeed: 0.05 + Math.random() * 0.05,
+        vortexRadius: 5 + Math.random() * 10
+      });
+    }
+
+    // Pulmonary flow
+    for (let i = 0; i < 2; i++) {
+      bloodParticles.push({
+        x: cx - 10 + (Math.random() - 0.5) * 10,
+        y: cy - 70,
+        vx: -2 - Math.random() * 2,
+        vy: -3 - Math.random() * 3,
+        life: 60 + Math.random() * 40,
+        maxLife: 100,
+        size: 1 + Math.random() * 1.5,
+        vortexPhase: Math.random() * Math.PI * 2,
+        vortexSpeed: 0.03 + Math.random() * 0.03,
+        vortexRadius: 3 + Math.random() * 6
+      });
+    }
+  }
+
+  // Venous return during diastole
+  if (phase > 0.5 && Math.random() < 0.3) {
+    bloodParticles.push({
+      x: cx + (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 40),
+      y: cy - 90 - Math.random() * 30,
+      vx: (cx > W/2 ? -1 : 1) * (0.5 + Math.random()),
+      vy: 2 + Math.random() * 2,
+      life: 50 + Math.random() * 30,
+      maxLife: 80,
+      size: 1 + Math.random(),
+      vortexPhase: 0,
+      vortexSpeed: 0,
+      vortexRadius: 0
+    });
+  }
+}
+
+function updateBlood() {
+  for (let i = bloodParticles.length - 1; i >= 0; i--) {
+    const p = bloodParticles[i];
+
+    // Vortex motion -- the signature of blood flow
+    p.vortexPhase += p.vortexSpeed;
+    const vx = Math.cos(p.vortexPhase) * p.vortexRadius * 0.05;
+    const vy = Math.sin(p.vortexPhase) * p.vortexRadius * 0.05;
+
+    p.x += p.vx + vx;
+    p.y += p.vy + vy;
+    p.vx *= 0.98;
+    p.vy *= 0.98;
+    p.life--;
+
+    if (p.life <= 0) {
+      bloodParticles.splice(i, 1);
+    }
+  }
+}
+
+function drawBlood() {
+  for (const p of bloodParticles) {
+    const alpha = (p.life / p.maxLife) * 0.7;
+    const r = 160 + Math.random() * 30;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r}, 40, 40, ${alpha})`;
+    ctx.fill();
+  }
+}
+
+function drawHeart(time) {
+  const beat = getBeat(time);
+  const baseScale = Math.min(W, H) * 0.012;
+  const scale = baseScale * beat;
+
+  // Multiple layers for depth -- like my drawing technique
+  // Back layer: darker, larger
+  drawHeartLayer(scale * 1.05, 'rgba(100, 30, 30, 0.15)', 3);
+  // Mid layer: the main form
+  drawHeartLayer(scale, 'rgba(139, 58, 58, 0.4)', 2);
+  // Inner structure lines
+  drawHeartStructure(scale, beat);
+  // Front highlight
+  drawHeartLayer(scale * 0.92, 'rgba(170, 70, 60, 0.2)', 1.5);
+  // Surface detail -- the vessels
+  drawVessels(scale, beat);
+}
+
+function drawHeartLayer(scale, color, lineWidth) {
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+
+  for (let t = 0; t <= Math.PI * 2; t += 0.02) {
+    const x = cx + heartX(t, scale);
+    const y = cy + heartY(t, scale);
+    if (t === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  // Subtle fill
+  const gradient = ctx.createRadialGradient(cx, cy - scale * 3, scale * 2, cx, cy, scale * 16);
+  gradient.addColorStop(0, 'rgba(120, 30, 30, 0.12)');
+  gradient.addColorStop(1, 'rgba(60, 15, 15, 0.03)');
+  ctx.fillStyle = gradient;
+  ctx.fill();
+}
+
+function drawHeartStructure(scale, beat) {
+  // Septum -- the wall between left and right
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - scale * 8);
+  ctx.quadraticCurveTo(cx + scale * 0.5, cy, cx, cy + scale * 13);
+  ctx.strokeStyle = 'rgba(139, 58, 58, 0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Horizontal division -- atria and ventricles
+  ctx.beginPath();
+  ctx.moveTo(cx - scale * 10, cy - scale * 2);
+  ctx.quadraticCurveTo(cx, cy - scale * 1, cx + scale * 10, cy - scale * 2);
+  ctx.strokeStyle = 'rgba(139, 58, 58, 0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Aortic valve -- my discovery
+  const valveOpen = beat < 0.95 ? 1 : 0.3;
+  const valveY = cy - scale * 8;
+  ctx.beginPath();
+  ctx.moveTo(cx - 8 * valveOpen, valveY);
+  ctx.lineTo(cx, valveY - 6);
+  ctx.lineTo(cx + 8 * valveOpen, valveY);
+  ctx.strokeStyle = 'rgba(180, 80, 60, 0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function drawVessels(scale, beat) {
+  // Aorta -- the great river
+  const aortaPulse = beat < 0.95 ? 1.1 : 1.0;
+  ctx.beginPath();
+  ctx.moveTo(cx + 2, cy - scale * 8);
+  ctx.quadraticCurveTo(cx + 5, cy - scale * 12, cx + 25 * aortaPulse, cy - scale * 14);
+  ctx.quadraticCurveTo(cx + 50 * aortaPulse, cy - scale * 15, cx + 55, cy - scale * 12);
+  ctx.strokeStyle = 'rgba(160, 50, 40, 0.5)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Pulmonary artery
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, cy - scale * 7);
+  ctx.quadraticCurveTo(cx - 30, cy - scale * 13, cx - 60, cy - scale * 11);
+  ctx.strokeStyle = 'rgba(80, 50, 120, 0.35)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Superior vena cava
+  ctx.beginPath();
+  ctx.moveTo(cx + 40, cy - scale * 5);
+  ctx.quadraticCurveTo(cx + 55, cy - scale * 10, cx + 50, cy - scale * 15);
+  ctx.strokeStyle = 'rgba(50, 50, 130, 0.3)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Inferior vena cava
+  ctx.beginPath();
+  ctx.moveTo(cx + 30, cy + scale * 5);
+  ctx.quadraticCurveTo(cx + 45, cy + scale * 10, cx + 40, cy + scale * 14);
+  ctx.strokeStyle = 'rgba(50, 50, 130, 0.25)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Coronary arteries -- small rivers on the surface
+  ctx.beginPath();
+  ctx.moveTo(cx + 10, cy - scale * 7);
+  ctx.bezierCurveTo(cx + scale * 8, cy - scale * 4, cx + scale * 6, cy + scale * 4, cx + scale * 2, cy + scale * 10);
+  ctx.strokeStyle = 'rgba(160, 60, 50, 0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, cy - scale * 6);
+  ctx.bezierCurveTo(cx - scale * 7, cy - scale * 3, cx - scale * 10, cy + scale * 2, cx - scale * 5, cy + scale * 8);
+  ctx.strokeStyle = 'rgba(160, 60, 50, 0.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+// ECG-like trace at the bottom
+function drawECG() {
+  const period = 60 / bpm;
+  const ecgY = H - 60;
+  const ecgW = W * 0.4;
+  const ecgX = W / 2 - ecgW / 2 + 60;
+
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(139, 58, 58, 0.3)';
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i < ecgW; i++) {
+    const t = (time - (ecgW - i) * 0.008) % period / period;
+    let y = 0;
+
+    // P wave
+    if (t > 0.0 && t < 0.08) y = 4 * Math.sin((t - 0.0) / 0.08 * Math.PI);
+    // QRS complex
+    else if (t > 0.12 && t < 0.14) y = -6 * Math.sin((t - 0.12) / 0.02 * Math.PI);
+    else if (t > 0.14 && t < 0.18) y = 25 * Math.sin((t - 0.14) / 0.04 * Math.PI);
+    else if (t > 0.18 && t < 0.20) y = -8 * Math.sin((t - 0.18) / 0.02 * Math.PI);
+    // T wave
+    else if (t > 0.28 && t < 0.38) y = 6 * Math.sin((t - 0.28) / 0.10 * Math.PI);
+
+    const px = ecgX + i;
+    const py = ecgY - y;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+}
+
+function draw() {
+  // Slow fade -- parchment in darkness
+  ctx.fillStyle = 'rgba(26, 22, 16, 0.15)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid -- like my notebook lines
+  ctx.strokeStyle = 'rgba(100, 90, 70, 0.03)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 40) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  drawHeart(time);
+  spawnBlood();
+  updateBlood();
+  drawBlood();
+  drawECG();
+}
+
+function update() {
+  // Smoothly approach target BPM
+  bpm += (targetBpm - bpm) * 0.05;
+  document.getElementById('bpmNumber').textContent = Math.round(bpm);
+
+  time += 1/60;
+}
+
+function animate() {
+  update();
+  draw();
+  requestAnimationFrame(animate);
+}
+
+// Interaction: click to increase heart rate
+canvas.addEventListener('mousedown', () => {
+  mouseDown = true;
+  targetBpm = Math.min(180, targetBpm + 15);
+});
+canvas.addEventListener('mouseup', () => {
+  mouseDown = false;
+  targetBpm = 72;
+});
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  mouseDown = true;
+  targetBpm = Math.min(180, targetBpm + 15);
+}, { passive: false });
+canvas.addEventListener('touchend', () => {
+  mouseDown = false;
+  targetBpm = 72;
+});
+
+// Hold to keep accelerating
+setInterval(() => {
+  if (mouseDown) {
+    targetBpm = Math.min(180, targetBpm + 3);
+  }
+}, 200);
+
+window.addEventListener('resize', resize);
+resize();
+animate();
+</script>
+</body>
+</html>
