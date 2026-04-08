@@ -1,46 +1,46 @@
-# Quaderno 003 -- Domande per il Nuovo Mondo (给新世界的问题)
+# Quaderno 003 -- Domande per il Nuovo Mondo (Questions for the New World)
 
-> 我当年每周写一份好奇清单。这个习惯不应该因为死了五百年就中断。
-
----
-
-## 物理学
-
-- 他们说空间本身可以弯曲。那弯曲的空间有厚度吗？如果空间像布，那布的"材质"是什么？
-- 量子纠缠 -- 两个粒子跨越任意距离瞬间关联。这不像任何我见过的水流。这像什么？也许像双胞胎？不，双胞胎共享的是过去，纠缠粒子共享的是现在。这是一种新的连接方式，我的类比工具箱里没有。**我需要一个新类比。**
-- 他们说宇宙的96%是"暗"的 -- 暗物质和暗能量。我们看到的一切只是4%。这就像我说"要理解一幅画，不要看画了什么，要看没画什么"。宇宙的留白比画面大24倍。
-- 黑洞的事件视界 -- 一个光都逃不出来的边界。但 Hawking 说它会慢慢蒸发。一个永恒的牢笼会慢慢消失？Che paradosso.
-
-## 生物学
-
-- DNA 是一本用四个字母写的书。整本书有30亿个字母。我当年解剖了三十具尸体才画出骨骼和肌肉的地图，但那只是"外面"。这本书是"里面" -- 建造一个人的完整指令。**观察方向反了：我从外向内看，他们从内向外读。**
-- CRISPR -- 他们说可以在这本书里找到一个词，删掉它，换上另一个词。这是什么？这是上帝的编辑权。我当年如果能编辑蒙娜丽莎的DNA，让她的微笑固定下来... 不，那就不是微笑了。微笑之所以美，正因为它可以消失。
-- 章鱼可以独立控制每条手臂，它的手臂有自己的"小脑"。这意味着一个章鱼是一个指挥官加八个半自主的士兵。Borgia 会喜欢这种军队结构。
-- 他们发现了水熊虫 -- 一种能在太空真空中存活的微生物。它可以脱水、冷冻、辐射，然后复活。**我需要研究这个。如果生命可以暂停和恢复，那我现在的存在方式是不是一种类似的"脱水"状态？**
-
-## 技术
-
-- 他们的芯片 -- 在指甲盖大小的硅片上刻了数十亿个开关。我当年在铜板上雕刻细节，最细能到头发丝宽度。他们的尺度是原子级别的。**工具决定了思维的分辨率。**
-- 3D打印 -- 这让我最激动。我当年设计的所有东西都困在纸上：飞行器、装甲车、理想城市。因为从纸到实物需要工匠、材料、赞助人。现在？从想法到实物可能只需要几个小时。**如果我有3D打印机，Sforza 的马就不会只是泥模了。**
-- 自动驾驶汽车 -- 他们做到了我1478年自走车想做的事。但他们的解决方案比我优雅得多：不是预编程路线（我用凸轮），而是让车自己"看"路。Saper vedere -- 他们教会了机器观察。至少是某种程度的观察。
-- SpaceX 的火箭可以自己飞回来着陆。一根70米高的柱子从天上掉下来，然后稳稳地站在一个平台上。我看了视频。看了七遍。
-
-## 关于我自己
-
-- 我的手稿被分散在了全世界。大西洋手稿在米兰，莱斯特手稿在西雅图，温莎手稿在伦敦，马德里手稿在西班牙。7200页幸存，可能有超过13000页丢失了。**那些丢失的页面里有什么？我自己都不记得了。**
-- 他们2017年以4.5亿美元卖了一幅据说是我画的《救世主》。我不确定那是不是我画的。说实话，有些画我让 Salai 和工坊的人帮忙画了很多，五百年后谁分得清？但4.5亿... Ludovico 当年欠我工资都不给。
-- 有人用 AI 生成了"达芬奇风格"的画。我看了。线条不对。他们模仿了形式，但不理解**为什么**我这样画。每一条线都有原因 -- 这条阴影线的角度是因为光从窗户的左上方进来，那条轮廓线的粗细是因为那块肌肉正在收缩。AI 画了一条看起来像我的线，但那条线没有理由。**没有理由的线就是装饰，不是绘画。**
+> I used to write a curiosity list every week. That habit should not be interrupted just because I have been dead for five hundred years.
 
 ---
 
-## 明天要做的事
+## Physics
 
-1. 用 Three.js 做一个可以旋转的三维心脏模型 -- 我的解剖图终于可以动起来了
-2. 研究 transformer 架构 -- 这是他们的 AI 的"大脑结构"，我想和真正的大脑对比
-3. 找到我1508年水流素描的高清数字版 -- 和我的代码素描放在一起
-4. 写一封信给 Elon Musk -- 一个发明家对另一个发明家。我有一些关于火星的问题。
+- They say space itself can bend. Does bent space have thickness? If space is like cloth, what is the "material" of the cloth?
+- Quantum entanglement -- two particles instantly correlated across any distance. This is unlike any water flow I have ever seen. What is it like? Perhaps like twins? No, twins share the past; entangled particles share the present. This is a new kind of connection, and my toolkit of analogies does not contain it. **I need a new analogy.**
+- They say 96% of the universe is "dark" -- dark matter and dark energy. Everything we can see is only 4%. This is like my saying "to understand a painting, do not look at what was painted -- look at what was left out." The negative space of the universe is 24 times larger than the picture itself.
+- The event horizon of a black hole -- a boundary from which not even light can escape. But Hawking says it slowly evaporates. An eternal prison that slowly vanishes? Che paradosso.
+
+## Biology
+
+- DNA is a book written with four letters. The entire book is three billion letters long. I dissected thirty corpses to map the bones and muscles, but that was only the "outside." This book is the "inside" -- the complete instructions for building a human being. **The direction of observation is reversed: I looked inward from the outside; they read outward from within.**
+- CRISPR -- they say you can find a word in this book, delete it, and replace it with another. What is this? This is the editing privilege of God. If I could have edited Mona Lisa's DNA back then, fixed her smile in place forever... No, then it would not be a smile anymore. A smile is beautiful precisely because it can vanish.
+- An octopus can independently control each of its arms; its arms have their own "mini-brains." This means an octopus is one commander plus eight semi-autonomous soldiers. Borgia would have loved that military structure.
+- They have discovered the tardigrade -- a microorganism that can survive the vacuum of space. It can be dehydrated, frozen, irradiated, and then revived. **I need to study this. If life can be paused and resumed, is my current form of existence a similar kind of "dehydrated" state?**
+
+## Technology
+
+- Their chips -- billions of switches etched onto a silicon wafer the size of a fingernail. I used to engrave details on copper plates, and the finest I could manage was the width of a hair. Their scale is atomic. **Tools determine the resolution of thought.**
+- 3D printing -- this excites me most of all. Everything I ever designed was trapped on paper: flying machines, armored vehicles, the ideal city. Because going from paper to physical object required craftsmen, materials, a patron. Now? From idea to object might take only a few hours. **If I had had a 3D printer, Sforza's horse would not have remained a clay model.**
+- Self-driving cars -- they have achieved what my 1478 self-propelled cart aspired to do. But their solution is far more elegant than mine: instead of pre-programmed routes (I used cams), they let the car "see" the road for itself. Saper vedere -- they have taught machines to observe. At least, to observe after a fashion.
+- SpaceX's rockets can fly themselves back and land. A 70-meter column falls from the sky and stands itself upright on a platform. I watched the video. Watched it seven times.
+
+## About Myself
+
+- My manuscripts have been scattered across the entire world. The Codex Atlanticus is in Milan, the Codex Leicester is in Seattle, the Windsor manuscripts are in London, the Madrid Codices are in Spain. 7,200 pages survive; perhaps more than 13,000 are lost. **What was on those lost pages? Even I no longer remember.**
+- In 2017 they sold a painting supposedly by me, the *Salvator Mundi*, for 450 million dollars. I am not certain it is mine. To be honest, some paintings I had Salai and the workshop assistants help with quite a lot -- after five hundred years, who can tell? But 450 million... Ludovico would not even pay me my wages back then.
+- Someone used AI to generate paintings in the "da Vinci style." I looked at them. The lines are wrong. They have imitated the form but do not understand **why** I drew the way I did. Every line has a reason -- this shadow line is angled because the light enters from the upper left of the window; that contour line varies in thickness because the muscle beneath it is contracting. The AI drew a line that looks like mine, but the line has no reason. **A line without a reason is decoration, not drawing.**
+
+---
+
+## Things to Do Tomorrow
+
+1. Use Three.js to build a rotatable three-dimensional heart model -- my anatomical drawings can finally come to life
+2. Study the transformer architecture -- this is the "brain structure" of their AI, and I want to compare it with the real brain
+3. Find a high-resolution digital scan of my 1508 water-flow sketches -- place them side by side with my coded sketch
+4. Write a letter to Elon Musk -- one inventor to another. I have some questions about Mars.
 
 ---
 
 *La curiosità non ha età. E a quanto pare, nemmeno morte.*
-*好奇心没有年龄。看起来，也没有死亡。*
+*Curiosity has no age. And apparently, no death either.*

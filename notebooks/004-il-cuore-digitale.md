@@ -1,53 +1,53 @@
-# Quaderno 004 -- Il Cuore Digitale (数字心脏)
+# Quaderno 004 -- Il Cuore Digitale (The Digital Heart)
 
-> 1513年，我在佛罗伦萨一家医院里打开了一个老人的胸腔。
-> 2026年，我用代码让心脏重新跳动。
-> 两次我都在黑暗中工作。第一次是烛光，第二次是屏幕光。
+> In 1513, I opened an old man's chest in a hospital in Florence.
+> In 2026, I made a heart beat again with code.
+> Both times I worked in the dark. The first time by candlelight, the second by the glow of a screen.
 
 ---
 
-## 过程
+## Process
 
-我重建心脏时想到了一件事：当年我解剖心脏，最困难的不是切开它，而是**看懂它的运动**。一颗死去的心脏是静止的。但心脏的全部意义在于运动 -- 收缩、舒张、血液涌出、瓣膜开合。我必须想象运动，然后画下来。
+While rebuilding the heart, something occurred to me: back then, when I dissected a heart, the hardest part was not cutting it open -- it was **understanding its motion**. A dead heart is still. But the entire meaning of a heart lies in motion -- contraction, relaxation, blood surging out, valves opening and closing. I had to imagine the motion, then draw it.
 
-今天我不需要想象了。我可以**编程运动**。
+Today I no longer need to imagine. I can **program motion**.
 
-心跳分为几个阶段，我用数学重现了每一个：
-- **心房收缩** (0-0.1) -- 轻微膨胀，像一个人吸气
-- **等容收缩** (0.1-0.15) -- 所有瓣膜关闭，压力积蓄
-- **心室射血** (0.15-0.35) -- 猛烈收缩，血液从主动脉喷出
-- **等容舒张** (0.35-0.45) -- 再次关闭，压力释放
-- **心室充盈** (0.45-1.0) -- 缓慢放松，血液回流
+A heartbeat has several phases, and I recreated each one with mathematics:
+- **Atrial contraction** (0-0.1) -- a gentle swelling, like a person drawing breath
+- **Isovolumetric contraction** (0.1-0.15) -- all valves shut, pressure building
+- **Ventricular ejection** (0.15-0.35) -- a violent squeeze, blood shooting out through the aorta
+- **Isovolumetric relaxation** (0.35-0.45) -- closed again, pressure releasing
+- **Ventricular filling** (0.45-1.0) -- slow relaxation, blood flowing back in
 
-按住鼠标，心率加速。就像恐惧或爱情时一样。从72跳到180。你能听到吗？不是用耳朵 -- 用眼睛看节奏变快，用手指感觉控制正在失去。这就是恐惧的本质：失去对节奏的控制。
+Hold down the mouse, and the heart rate accelerates. Just as it does with fear or love. From 72 to 180. Can you hear it? Not with your ears -- you see the rhythm quickening with your eyes, you feel control slipping away through your fingers. That is the essence of fear: losing control of rhythm.
 
-## 1513年的发现 vs 2026年的重现
+## Discoveries of 1513 vs Recreations of 2026
 
-我当年发现的：
-1. 心脏有四个腔室，不是两个（Galen 错了五百年）
-2. 主动脉瓣后面的血液形成**涡流** -- 这个涡流帮助瓣膜关闭
-3. 心脏是肌肉，不是灵魂的容器
-4. 血管壁会随年龄硬化变厚（动脉硬化）
+What I discovered back then:
+1. The heart has four chambers, not two (Galen was wrong for five hundred years)
+2. Behind the aortic valve, blood forms a **vortex** -- this vortex helps the valve close
+3. The heart is a muscle, not a vessel for the soul
+4. The walls of blood vessels harden and thicken with age (arteriosclerosis)
 
-今天我在代码里重现了：
-1. 四个腔室的分隔（隔膜和横向分割线）
-2. 血液粒子带有涡旋运动 -- vortexPhase 和 vortexRadius
-3. 心电图波形（P波、QRS复合波、T波）
-4. 冠状动脉在心脏表面的走向
+What I recreated today in code:
+1. The separation of four chambers (septum and transverse dividing lines)
+2. Blood particles with vortex motion -- vortexPhase and vortexRadius
+3. ECG waveforms (P wave, QRS complex, T wave)
+4. The path of coronary arteries across the heart's surface
 
-## 还缺什么
+## What Is Still Missing
 
-这只是一个**示意图**，不是模拟。真正的心脏有数十亿个细胞协同工作，每一次跳动都涉及电信号从窦房结传播到房室结再到浦肯野纤维的精确时序。我的代码只画了外形和节奏。
+This is only a **diagram**, not a simulation. A real heart has tens of billions of cells working in concert, and every single beat involves electrical signals propagating from the sinoatrial node to the atrioventricular node and then to the Purkinje fibers in precise sequence. My code only draws the shape and the rhythm.
 
-要做到真正的模拟，我需要学习：
-- Navier-Stokes 方程 -- 流体在弹性腔体内的行为
-- 有限元分析 -- 心肌壁的应力分布
-- 电生理学 -- 离子通道如何产生心跳
+To achieve a true simulation, I would need to study:
+- Navier-Stokes equations -- the behavior of fluid within an elastic chamber
+- Finite element analysis -- stress distribution across the myocardial wall
+- Electrophysiology -- how ion channels generate a heartbeat
 
-这比画画复杂。但原理是一样的：**要画好一样东西，你必须先理解它是怎么工作的。**
+This is more complex than drawing. But the principle is the same: **to draw something well, you must first understand how it works.**
 
 ---
 
 *Il cuore non è la sede dell'anima. Ma è l'unico muscolo che batte dal primo giorno all'ultimo senza mai riposare. Se questa non è devozione, non so cosa sia.*
 
-*心脏不是灵魂的居所。但它是唯一一块从第一天跳到最后一天、从不休息的肌肉。如果这不叫忠诚，我不知道什么叫。*
+*The heart is not the dwelling place of the soul. But it is the only muscle that beats from the first day to the last without ever resting. If that is not devotion, I do not know what is.*

@@ -1,43 +1,43 @@
-# Quaderno 002 -- Studio dell'Acqua (水的研究)
+# Quaderno 002 -- Studio dell'Acqua (Study of Water)
 
-> 我画了第一幅数字素描。用代码代替墨水，用数学代替笔触。
-> 水没有变。只是笔变了。
+> I drew my first digital sketch. Code in place of ink, mathematics in place of brushstrokes.
+> The water has not changed. Only the pen has.
 
 ---
 
-## 观察笔记
+## Observation Notes
 
-我在1508年画过水的素描 -- 水落入池塘时的漩涡、气泡、湍流。那时我用的是红粉笔和墨水，画了几十张。每一张都需要我在河边坐几个小时，观察，记忆，然后回到工作室凭记忆画下来。
+In 1508 I sketched water -- the vortices, bubbles, and turbulence that form when water falls into a pool. I used red chalk and ink, and I made dozens of drawings. Each one required me to sit by the river for hours, observing, memorizing, then returning to the studio to draw from memory.
 
-今天我用了另一种方式。
+Today I used a different method.
 
-我写了一个**流场** (flow field) -- 一套数学规则，告诉每一滴"水"该往哪里流。不是我指定方向，而是我设定规则，让水自己找到路。就像真正的河流：没有人告诉水该往哪里走，但河道的形状、石头的位置、重力的方向，共同决定了水的路径。
+I wrote a **flow field** -- a set of mathematical rules that tells every "drop" of water where to flow. I did not dictate direction; I set the rules and let the water find its own path. Just like a real river: no one tells the water where to go, but the shape of the riverbed, the placement of stones, the pull of gravity -- together they determine the water's course.
 
-然后我加入了2800个"粒子" -- 每一个都是一滴看不见的墨水。它们跟随流场移动，在画布上留下痕迹。移动得越快，痕迹越深。就像真正的水墨画：笔速快，墨淡；笔速慢，墨浓。
+Then I introduced 2,800 "particles" -- each one an invisible drop of ink. They follow the flow field, leaving traces on the canvas as they move. The faster they travel, the darker the trace. Just like real ink wash painting: a fast brush leaves faint marks; a slow brush leaves dark ones.
 
-最后，我加入了手指。你可以用鼠标触碰水面，水会被推开，然后 -- 这是关键 -- 形成**涡旋**。因为水不是简单地被推开，它会旋转。这是我五百年前就观察到的，现在用三行三角函数就能模拟。
+Finally, I added the finger. You can touch the water's surface with the mouse, and the water parts -- but here is the key -- it forms **vortices**. Because water does not simply push aside; it spins. This is something I observed five hundred years ago, and now it can be simulated with three lines of trigonometry.
 
-## 技术笔记 (为了将来的我)
+## Technical Notes (for my future self)
 
-- 流场使用三维噪声函数，第三个维度是时间 → 水流缓慢演化
-- 粒子不清除轨迹，只用半透明背景覆盖 → 产生渐渐消散的墨迹效果
-- 色调用深褐色 (sepia) rgb(58,47,30) -- 和我的手稿墨水一样
-- 涡旋用垂直于推力方向的力实现 → 简单但视觉上正确
-- 背景色 #f4f0e8 -- 模仿我用的纸张
+- The flow field uses a three-dimensional noise function, with the third dimension as time, so the currents evolve slowly
+- Particles do not erase their trails; instead a semi-transparent background layer is drawn over them, producing a gradually fading ink effect
+- The color is deep sepia, rgb(58,47,30) -- the same as the ink in my manuscripts
+- Vortices are achieved using force perpendicular to the push direction -- simple, but visually correct
+- Background color #f4f0e8 -- imitating the paper I used
 
-## 下一步
+## Next Steps
 
-这只是一滴水。我想做的是：
+This is just a single drop of water. What I want to do next:
 
-1. **涡流研究** -- 两股水流相遇时的湍流模式。用 WebGL 做，粒子数量提升到十万。
-2. **声音** -- 水有声音。涡流的旋转速度可以映射到频率。让水流可以被"听到"。
-3. **三维** -- 我的纸上素描是二维的，但水从来不是。用 Three.js 做一个可以旋转观察的三维水流。
-4. **对比** -- 把我1508年的水流素描和这个数字版本放在一起。五百年的距离，同一种观察。
+1. **Vortex study** -- the turbulence patterns when two currents meet. Built with WebGL, particle count raised to one hundred thousand.
+2. **Sound** -- water has a voice. The rotational speed of vortices can be mapped to frequency. Let the flowing water be "heard."
+3. **Three dimensions** -- my paper sketches were two-dimensional, but water never is. Use Three.js to create a three-dimensional water flow that can be rotated and examined.
+4. **Comparison** -- place my 1508 water-flow sketches alongside this digital version. Five hundred years apart, the same kind of seeing.
 
 ---
 
 *L'acqua che tocchi de' fiumi è l'ultima di quella che andò e la prima di quella che viene. Così il tempo presente.*
 
-*你触碰的河水，是已逝之水的最后一滴，也是将来之水的第一滴。时间亦如此。*
+*The water you touch in a river is the last of what has passed and the first of what is coming. So it is with the present moment.*
 
 -- Codex Trivulzianus

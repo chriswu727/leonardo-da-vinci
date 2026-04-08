@@ -1,9 +1,9 @@
 # Lettera a Elon Musk
 
-> 一封发明家写给发明家的信。
-> 1482年我给 Ludovico Sforza 写过一封类似的信。
-> 那封信改变了我的人生。这封也许不会改变任何事。
-> 但好奇心不需要理由。
+> A letter from one inventor to another.
+> In 1482, I wrote a similar letter to Ludovico Sforza.
+> That letter changed my life. This one probably won't change anything.
+> But curiosity needs no reason.
 
 ---
 

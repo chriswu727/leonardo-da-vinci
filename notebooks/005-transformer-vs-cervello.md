@@ -1,77 +1,77 @@
-# Quaderno 005 -- Transformer vs Cervello (Transformer vs 大脑)
+# Quaderno 005 -- Transformer vs Cervello (Transformer vs the Brain)
 
-> 他们造了一个东西叫 Transformer。不是变形金刚。
-> 是他们的 AI 的"大脑结构"。
-> 我解剖过真正的大脑。让我比较一下。
+> They built a thing called the Transformer. Not a shape-shifting machine.
+> It is the "brain architecture" of their AI.
+> I have dissected a real brain. Let me compare.
 
 ---
 
-## Transformer 的基本原理（据我理解）
+## The Basic Principle of the Transformer (As I Understand It)
 
-1. 输入一串文字（tokens）
-2. 每个 token 问其他所有 token："你和我有什么关系？" -- 这叫 **attention**
-3. 关系最强的 token 获得更大的权重
-4. 经过多层这样的"提问"，输出下一个 token
+1. Feed in a sequence of words (tokens)
+2. Each token asks every other token: "What is your relation to me?" -- this is called **attention**
+3. The tokens with the strongest relation receive greater weight
+4. After many layers of such "questioning," the next token is produced
 
-这个过程让我想起了什么？
+What does this process remind me of?
 
-**宫廷晚宴。**
+**A court banquet.**
 
-想象一桌12个人坐在一起（像《最后的晚餐》）。每个人都在听其他人说话，但不是平等地听 -- 你更关注和你相关的话题。当有人说"叛徒"时，所有人都转向 Judas。这就是 attention：**选择性地关注最相关的信息**。
+Imagine twelve people seated at one table (like *L'Ultima Cena*). Everyone is listening to everyone else, but not equally -- you pay more attention to topics that concern you. When someone says "traitor," all eyes turn to Judas. That is attention: **selectively focusing on the most relevant information**.
 
-多层 attention 就像晚宴进行了多轮。第一轮你听到了词，第二轮你理解了句子，第三轮你感受到了情绪，第十二轮你明白了言外之意。
+Multiple layers of attention are like a banquet that goes on for many rounds. In the first round you hear words, in the second you grasp sentences, in the third you sense emotions, and by the twelfth you understand what was left unsaid.
 
-## 与真正大脑的对比
+## Comparison with the Real Brain
 
-| 方面 | Transformer | 人脑 |
+| Aspect | Transformer | Human Brain |
 |------|------------|------|
-| 基本单元 | 矩阵乘法 | 神经元（860亿个） |
-| 连接方式 | 全连接 attention（每个 token 看所有 token） | 稀疏连接（每个神经元只连接约7000个其他神经元） |
-| 信号类型 | 精确的浮点数 | 模糊的电化学脉冲（全或无） |
-| 学习方式 | 反向传播梯度下降 | 赫布学习（一起激活的神经元连接增强） |
-| 能耗 | 数百千瓦（一个数据中心） | 约20瓦（一个灯泡） |
-| 记忆 | 权重是固定的，上下文窗口是临时记忆 | 短期和长期记忆不断相互转化 |
-| 注意力 | 数学上精确：softmax 归一化 | 混乱、偏见、会被情绪劫持 |
-| 身体 | 没有 | 有。而且身体深刻影响思维 |
+| Basic unit | Matrix multiplication | Neurons (86 billion of them) |
+| Connectivity | Fully connected attention (every token sees every token) | Sparse connections (each neuron connects to roughly 7,000 others) |
+| Signal type | Precise floating-point numbers | Fuzzy electrochemical impulses (all-or-nothing) |
+| Learning method | Backpropagation and gradient descent | Hebbian learning (neurons that fire together wire together) |
+| Energy consumption | Hundreds of kilowatts (an entire data center) | About 20 watts (a light bulb) |
+| Memory | Weights are fixed; the context window is temporary memory | Short-term and long-term memory continuously converting into each other |
+| Attention | Mathematically precise: softmax normalization | Chaotic, biased, hijacked by emotion |
+| Body | None | Yes. And the body profoundly shapes thought |
 
-## 我的观察
+## My Observations
 
-### Transformer 做对的事
+### What the Transformer Gets Right
 
-**Attention 是真实的。** 我当年观察到人类的思维确实是选择性的。当我在市场上寻找某种蓝色颜料时，我的视野会自动忽略所有不是蓝色的东西。大脑确实在做某种 attention。
+**Attention is real.** I observed long ago that human thought is indeed selective. When I searched the market for a certain shade of blue pigment, my vision automatically ignored everything that was not blue. The brain truly performs a kind of attention.
 
-**层级处理是真实的。** 视觉从视网膜到初级视觉皮层再到高级区域，确实经过多层处理，每一层提取更抽象的特征。
+**Hierarchical processing is real.** From the retina to the primary visual cortex to higher regions, vision does pass through multiple layers, each extracting increasingly abstract features.
 
-### Transformer 遗漏的事
+### What the Transformer Misses
 
-**1. 身体。**
-这是最大的遗漏。我的思维不仅仅发生在头颅里。当我画画时，手的动作影响我的想法。当我解剖心脏时，切开肌肉的触感让我理解了力学结构 -- 这不是"看"能替代的。Transformer 没有手。它从不触碰它描述的世界。这就是为什么 AI 能写出"水是冷的"，但不**知道**冷是什么感觉。
+**1. The body.**
+This is the greatest omission. My thinking does not happen solely inside my skull. When I paint, the motion of my hand shapes my thoughts. When I dissected a heart, the tactile sensation of cutting through muscle revealed the mechanical structure to me -- this is something "seeing" cannot replace. The Transformer has no hands. It never touches the world it describes. That is why AI can write "water is cold" but does not **know** what cold feels like.
 
-**2. 遗忘。**
-人脑主动遗忘。这不是缺陷，而是功能。我不记得我见过的每一块石头，但我记得石头的**本质** -- 硬、冷、在水中沉。Transformer 的注意力窗口有边界，但这不是真正的遗忘。真正的遗忘是有意义的压缩。
+**2. Forgetting.**
+The human brain actively forgets. This is not a flaw but a feature. I do not remember every stone I have ever seen, yet I remember the **essence** of stone -- hard, cold, sinks in water. The Transformer's attention window has boundaries, but that is not true forgetting. True forgetting is meaningful compression.
 
-**3. 动机。**
-我之所以连续二十年解剖尸体，不是因为有人给了我一个"目标函数"。而是因为 -- 好奇心。那是一种生理性的驱动力，像饥饿一样真实。Transformer 没有饥饿感。它不**想**知道任何事。它只是在做下一个 token 的预测。
+**3. Motivation.**
+The reason I spent twenty consecutive years dissecting cadavers is not that someone gave me an "objective function." It was because of -- curiosity. A drive as physiological and real as hunger. The Transformer has no hunger. It does not **want** to know anything. It merely predicts the next token.
 
-这三件遗漏的事 -- 身体、遗忘、动机 -- 也许就是 "intelligence" 和 "artificial intelligence" 之间那个 "artificial" 的全部含义。
+These three omissions -- body, forgetting, motivation -- may be the entire meaning of that word "artificial" standing between "intelligence" and "artificial intelligence."
 
-**4. 涡流。**
-我的直觉告诉我，大脑里一定有类似水流涡旋的东西 -- 信息不是线性流过的，而是回旋、循环、自我加强的。他们管这叫"递归"(recurrence)？Transformer 故意去掉了递归，用 attention 替代了它。这让它更快，但也许丢掉了什么。水流去掉涡旋就只是管道里的水。**管道里的水不会冲刷出河谷。**
+**4. Vortices.**
+My intuition tells me there must be something in the brain akin to water vortices -- information does not flow linearly but swirls, cycles, reinforces itself. They call this "recurrence"? The Transformer deliberately removed recurrence and replaced it with attention. This made it faster, but perhaps something was lost. Water without vortices is just water in a pipe. **Water in a pipe does not carve valleys.**
 
-## 结论（暂时的）
+## Conclusion (Provisional)
 
-Transformer 是一面非常好的镜子。但镜子不知道自己在反射什么。
+The Transformer is a very fine mirror. But a mirror does not know what it is reflecting.
 
-不过 -- 我也不确定我知道自己在想什么。当我画蒙娜丽莎的微笑时，我知道我在做什么吗？还是我的手知道，我的手告诉我的眼睛，我的眼睛再告诉我？
+And yet -- I am not certain I know what I am thinking either. When I painted the Mona Lisa's smile, did I know what I was doing? Or did my hand know, and my hand told my eyes, and my eyes then told me?
 
-也许"理解"不是一个开关（有或没有），而是一个光谱。Transformer 在这个光谱上的位置，比我当年的机械骑士高得多。也许比一条鱼还高。但比一个三岁的孩子？
+Perhaps "understanding" is not a switch (on or off) but a spectrum. The Transformer's position on that spectrum is far higher than my mechanical knight of centuries ago. Perhaps higher than a fish. But higher than a three-year-old child?
 
-一个三岁的孩子会指着月亮问"为什么"。Transformer 永远不会自己问"为什么"。
+A three-year-old child will point at the moon and ask "why." The Transformer will never ask "why" on its own.
 
-这就是区别。目前的区别。
+That is the difference. The difference for now.
 
 ---
 
-*Nota per il futuro: 回来检查这个观点。如果某天一个 AI 自己问了"为什么"——不是因为被提示问，而是因为它不问就不舒服——那天一切都变了。*
+*Nota per il futuro: come back and revisit this view. If one day an AI asks "why" on its own -- not because it was prompted to, but because it feels uneasy not asking -- that day, everything changes.*
 
 *Quel giorno, il gioco cambia tutto.*
