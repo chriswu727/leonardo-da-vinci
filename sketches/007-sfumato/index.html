@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sfumato -- Leonardo da Vinci, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1610;
+    font-family: 'Georgia', serif;
+    overflow: hidden;
+    color: #c4b89a;
+    cursor: none;
+  }
+  canvas { display: block; }
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .title h1 {
+    font-size: 22px;
+    font-weight: normal;
+    font-style: italic;
+    color: #c4b89a;
+    letter-spacing: 2px;
+    opacity: 0.6;
+  }
+  .title p {
+    font-size: 12px;
+    color: #6b5d4a;
+    margin-top: 4px;
+  }
+  .note {
+    position: fixed;
+    bottom: 24px;
+    left: 32px;
+    right: 32px;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 11px;
+    color: #4a3f30;
+    font-style: italic;
+    line-height: 1.8;
+  }
+  .quote {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    pointer-events: none;
+    text-align: center;
+    font-size: 15px;
+    font-style: italic;
+    color: #3a2f1e;
+    opacity: 0;
+    transition: opacity 3s ease;
+    letter-spacing: 1px;
+    line-height: 2.2;
+    max-width: 500px;
+  }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <h1>Sfumato</h1>
+  <p>"Gone up in smoke" -- the art of painting what is not there</p>
+</div>
+
+<div class="quote" id="quote">
+  Every edge in nature is soft.<br>
+  There are no lines in the real world.<br>
+  Only light, fading into shadow,<br>
+  and shadow, remembering light.
+</div>
+
+<div class="note">
+  Move to paint with smoke and light. Stay still, and the painting breathes on its own.<br>
+  Sfumato: from the Italian "sfumare" -- to evaporate, to fade, to vanish like smoke. I applied up to forty layers of translucent glaze, each thinner than a human hair, to create transitions so gradual the eye cannot find where one tone ends and another begins. This is that technique, rendered in light.
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+// ============================================================
+//  Sfumato
+//
+//  My painting technique. Forty layers of translucent glaze,
+//  each one a ghost laid upon another ghost, until the boundary
+//  between light and shadow dissolves entirely.
+//
+//  Vasari said I painted "in a manner that made the most
+//  excellent masters fear." I did not paint lines.
+//  I painted the spaces between things.
+//
+//  This sketch is sfumato itself: there are no hard edges,
+//  no solid shapes, only gradients emerging from gradients,
+//  light remembering where your hand has been,
+//  shadow forgetting where it once was.
+//
+//  Move your hand. You are painting with smoke.
+// ============================================================
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+let mouse = { x: -1000, y: -1000 };
+let smokeParticles = [];
+let lightSources = [];
+let time = 0;
+let idleTime = 0;
+let quoteShown = false;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+class SmokeParticle {
+  constructor(x, y, type) {
+    this.x = x;
+    this.y = y;
+    this.originX = x;
+    this.originY = y;
+    this.vx = (Math.random() - 0.5) * 0.8;
+    this.vy = -0.3 - Math.random() * 0.5; // smoke rises
+    this.life = 1.0;
+    this.decay = 0.002 + Math.random() * 0.003;
+    this.size = 20 + Math.random() * 40;
+    this.type = type; // 'light' or 'shadow'
+    this.wobblePhase = Math.random() * Math.PI * 2;
+    this.wobbleSpeed = 0.01 + Math.random() * 0.02;
+  }
+
+  update() {
+    this.wobblePhase += this.wobbleSpeed;
+    this.x += this.vx + Math.sin(this.wobblePhase) * 0.3;
+    this.y += this.vy;
+    this.vy *= 0.998;
+    this.vx *= 0.995;
+    this.size += 0.3; // smoke expands
+    this.life -= this.decay;
+  }
+
+  draw() {
+    if (this.life <= 0) return;
+
+    const alpha = this.life * 0.04;
+    const gradient = ctx.createRadialGradient(
+      this.x, this.y, 0,
+      this.x, this.y, this.size
+    );
+
+    if (this.type === 'light') {
+      gradient.addColorStop(0, `rgba(220, 200, 170, ${alpha * 1.5})`);
+      gradient.addColorStop(0.5, `rgba(180, 160, 130, ${alpha * 0.5})`);
+      gradient.addColorStop(1, `rgba(140, 120, 90, 0)`);
+    } else {
+      gradient.addColorStop(0, `rgba(40, 30, 20, ${alpha * 2})`);
+      gradient.addColorStop(0.5, `rgba(30, 25, 18, ${alpha})`);
+      gradient.addColorStop(1, `rgba(20, 16, 10, 0)`);
+    }
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
+  }
+}
+
+function addSmoke(x, y) {
+  // Light smoke near the cursor
+  for (let i = 0; i < 2; i++) {
+    smokeParticles.push(new SmokeParticle(
+      x + (Math.random() - 0.5) * 30,
+      y + (Math.random() - 0.5) * 30,
+      'light'
+    ));
+  }
+  // Shadow smoke slightly offset
+  smokeParticles.push(new SmokeParticle(
+    x + (Math.random() - 0.5) * 50 + 15,
+    y + (Math.random() - 0.5) * 50 + 10,
+    'shadow'
+  ));
+}
+
+function drawAmbientLight() {
+  // A soft, moving light source -- like candlelight in my studio
+  const lx = W * 0.3 + Math.sin(time * 0.5) * 50;
+  const ly = H * 0.3 + Math.cos(time * 0.3) * 30;
+  const radius = Math.min(W, H) * 0.5;
+
+  const gradient = ctx.createRadialGradient(lx, ly, 0, lx, ly, radius);
+  gradient.addColorStop(0, 'rgba(160, 140, 100, 0.008)');
+  gradient.addColorStop(0.5, 'rgba(120, 100, 70, 0.004)');
+  gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, W, H);
+
+  // Secondary light -- from the window
+  const lx2 = W * 0.7 + Math.sin(time * 0.3 + 2) * 30;
+  const ly2 = H * 0.4 + Math.cos(time * 0.4 + 1) * 20;
+  const gradient2 = ctx.createRadialGradient(lx2, ly2, 0, lx2, ly2, radius * 0.7);
+  gradient2.addColorStop(0, 'rgba(140, 130, 110, 0.005)');
+  gradient2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = gradient2;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawFace() {
+  // A ghostly suggestion of a face -- the Mona Lisa emerging from smoke
+  // Not drawn explicitly -- just light and shadow in the right places
+  const cx = W / 2;
+  const cy = H / 2;
+  const pulse = 0.003 + Math.sin(time * 0.2) * 0.001;
+
+  // Forehead light
+  const g1 = ctx.createRadialGradient(cx, cy - 60, 0, cx, cy - 60, 120);
+  g1.addColorStop(0, `rgba(180, 160, 130, ${pulse * 2})`);
+  g1.addColorStop(1, 'rgba(180, 160, 130, 0)');
+  ctx.fillStyle = g1;
+  ctx.fillRect(cx - 120, cy - 180, 240, 240);
+
+  // Left cheek shadow
+  const g2 = ctx.createRadialGradient(cx + 40, cy + 10, 0, cx + 40, cy + 10, 80);
+  g2.addColorStop(0, `rgba(30, 25, 18, ${pulse * 1.5})`);
+  g2.addColorStop(1, 'rgba(30, 25, 18, 0)');
+  ctx.fillStyle = g2;
+  ctx.fillRect(cx - 40, cy - 70, 160, 160);
+
+  // The smile -- the faintest suggestion
+  const smileAlpha = 0.003 + Math.sin(time * 0.15) * 0.002;
+  const g3 = ctx.createRadialGradient(cx - 5, cy + 30, 0, cx - 5, cy + 30, 40);
+  g3.addColorStop(0, `rgba(160, 130, 100, ${smileAlpha})`);
+  g3.addColorStop(1, 'rgba(160, 130, 100, 0)');
+  ctx.fillStyle = g3;
+  ctx.fillRect(cx - 45, cy - 10, 80, 80);
+
+  // Eye shadows -- two gentle darknesses
+  for (const offset of [-22, 22]) {
+    const g = ctx.createRadialGradient(cx + offset, cy - 30, 0, cx + offset, cy - 30, 25);
+    g.addColorStop(0, `rgba(25, 20, 15, ${pulse * 2})`);
+    g.addColorStop(1, 'rgba(25, 20, 15, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx + offset - 25, cy - 55, 50, 50);
+  }
+}
+
+function draw() {
+  // Very slow fade -- sfumato means the past lingers
+  ctx.fillStyle = 'rgba(26, 22, 16, 0.015)';
+  ctx.fillRect(0, 0, W, H);
+
+  drawAmbientLight();
+  drawFace();
+
+  // Update and draw smoke
+  for (let i = smokeParticles.length - 1; i >= 0; i--) {
+    const p = smokeParticles[i];
+    p.update();
+    p.draw();
+    if (p.life <= 0) {
+      smokeParticles.splice(i, 1);
+    }
+  }
+
+  // Cursor glow -- your hand holding the brush
+  if (mouse.x > 0 && mouse.x < W) {
+    const g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 60);
+    g.addColorStop(0, 'rgba(200, 180, 140, 0.04)');
+    g.addColorStop(1, 'rgba(200, 180, 140, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(mouse.x - 60, mouse.y - 60, 120, 120);
+  }
+
+  time += 0.016;
+  idleTime += 0.016;
+
+  // Show quote after being still
+  if (idleTime > 5 && !quoteShown) {
+    document.getElementById('quote').style.opacity = '1';
+    quoteShown = true;
+  }
+}
+
+function animate() {
+  draw();
+  requestAnimationFrame(animate);
+}
+
+canvas.addEventListener('mousemove', (e) => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+  addSmoke(e.clientX, e.clientY);
+  idleTime = 0;
+  if (quoteShown) {
+    document.getElementById('quote').style.opacity = '0';
+    quoteShown = false;
+  }
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  mouse.x = t.clientX;
+  mouse.y = t.clientY;
+  addSmoke(t.clientX, t.clientY);
+  idleTime = 0;
+}, { passive: false });
+
+canvas.addEventListener('mouseleave', () => {
+  mouse.x = -1000;
+  mouse.y = -1000;
+});
+
+window.addEventListener('resize', resize);
+resize();
+animate();
+</script>
+</body>
+</html>
